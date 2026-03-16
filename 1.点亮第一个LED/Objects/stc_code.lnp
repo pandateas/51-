@@ -1,0 +1,4 @@
+".\Objects\STARTUP.obj",
+".\Objects\STC_CODE.obj" 
+TO ".\Objects\stc_code" 
+PRINT(".\Listings\stc_code.m51") RAMSIZE(256) 
