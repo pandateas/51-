@@ -1,0 +1,191 @@
+C51 COMPILER V9.60.7.0   DS1302                                                            03/25/2026 16:26:02 PAGE 1   
+
+
+C51 COMPILER V9.60.7.0, COMPILATION OF MODULE DS1302
+OBJECT MODULE PLACED IN .\Objects\DS1302.obj
+COMPILER INVOKED BY: C:\Keil_v5\C51\BIN\C51.EXE DS1302.c OPTIMIZE(8,SPEED) BROWSE DEBUG OBJECTEXTEND PRINT(.\Listings\DS
+                    -1302.lst) OBJECT(.\Objects\DS1302.obj)
+
+line level    source
+
+   1          #include <REGX52.H>
+   2          
+   3          sbit DS1302_SCLK = P3^6;// DS1302时钟引脚,通信的节拍器
+   4          sbit DS1302_IO   = P3^4;// 双向通信引脚,用来传输数据,与计时器通信的引脚
+   5          sbit DS1302_CE   = P3^5;// DS1302的使能开关,置1开启,置0关闭
+   6           
+   7          #define DS1302_SECOND 0x80
+   8          #define DS1302_MINUTE 0x82
+   9          #define DS1302_HOUR   0x84
+  10          #define DS1302_DATE   0x86
+  11          #define DS1302_MONTH  0x88
+  12          #define DS1302_DAY    0x8A
+  13          #define DS1302_YEAR   0x8C
+  14          #define DS1302_WP     0x8E
+  15          
+  16          unsigned char i;
+  17          unsigned char DS1302_Time[] = {26,3,25,19,10,55,2};
+  18          //这里以十进制显示的日期时间信息,要存进单片机里必须
+  19          //以BCD码的形式写给单片机,为什么用BCD码?因为DS1302的
+  20          //设计可以理解它都是四个寄存器为一组表示0~9的十个数字
+  21          //使用BCD码正好能够用高四位、低四位,来存储0~9的信息
+  22          
+  23          
+  24          
+  25          //初始化DS1302,打开开关使能DS1302
+  26          void DS1302_Init(void)
+  27          {
+  28   1          DS1302_CE = 0;     //总开关关闭
+  29   1          DS1302_SCLK = 0;   //时钟脉冲关闭
+  30   1      }
+  31          
+  32          
+  33          
+  34          //单片机的读写操作都要通过下面的WriteByte,ReadByte函数来进行读写
+  35          //都需要先根据顺序,先来的是寻址,后来的是数据来进行读写操作
+  36          //读写需要有上升沿,都是从八位寄存器的最低位开始往高位进行寻址,即从0~7
+  37          
+  38          //在Data里进行的|=操作你有没有觉得很奇怪?如果或等于是开关的话,从最低位
+  39          //打开到最高位的开关,但是或等于的特性是只改变选中的位置,而不改变其他的位置
+  40          //那么前面打开的开关怎么办?
+  41          //答:在Data里进行的操作实际上不是打开开关,而是写入数据
+  42          //单片机只能够逐位读取信息,所以在Data里要把二进制的信息拆分成8个部分逐一写入
+  43          //而或等于正是保证从低位到高位写入的数据不会被修改,能够正常的向后写入
+  44          //同理Command进行的&=操作也是逐一写入八位二进制数据,来规定我要往哪个寄存器写入数据
+  45          
+  46          //电脑向单片机写入,先对目标寄存器,后写入数据
+  47          void DS1302_WriteByte(unsigned char Command,unsigned char Data)
+  48          {
+  49   1          DS1302_CE = 1;//使用前启动,表示开始和芯片通信
+  50   1          
+  51   1          for(i = 0;i < 8;i ++)
+  52   1          {
+  53   2            DS1302_IO = Command&(0x01<<i);//保留第i位,其余强制置0
+  54   2                                          //通过&符号表示只操作这一位
+C51 COMPILER V9.60.7.0   DS1302                                                            03/25/2026 16:26:02 PAGE 2   
+
+  55   2            DS1302_SCLK = 1;//脉冲时钟打开,上升沿寻址
+  56   2            DS1302_SCLK = 0;//脉冲时钟关闭,下降沿完成寻址
+  57   2          }   
+  58   1          
+  59   1           for(i = 0;i < 8;i ++)
+  60   1          {
+  61   2            DS1302_IO = Data&(0x01<<i);//保留第i位,其余置0
+  62   2            DS1302_SCLK = 1;//脉冲打开,上升沿写入
+  63   2            DS1302_SCLK = 0;//脉冲关闭,完成数据输入
+  64   2          }   
+  65   1          
+  66   1           DS1302_CE = 0;//使用后关闭,通信结束
+  67   1      }
+  68          
+  69          
+  70          
+  71          
+  72          
+  73          //单片机读取已经被写入进来的数据
+  74          unsigned char DS1302_ReadByte(unsigned char Command)
+  75          {
+  76   1          unsigned char i,Data = 0x00;
+  77   1              Command |= 0x01;//将读位置1,进入读模式
+  78   1          DS1302_CE = 1;  //打开DS1302开关
+  79   1          
+  80   1          //根据DS1302数据手册可知,在读模式下的寻址是用下降沿来激活的
+  81   1          for(i = 0;i < 8;i ++)
+  82   1          {
+  83   2            DS1302_IO = Command&(0x01<<i);
+  84   2            DS1302_SCLK = 0;//下降沿选定寄存器
+  85   2            DS1302_SCLK = 1;//上升沿关闭寻址
+  86   2          }   
+  87   1          
+  88   1          for(i = 0;i < 8;i ++)
+  89   1          {
+  90   2              DS1302_SCLK = 1;//上升沿读取寄存器中的数据
+  91   2              DS1302_SCLK = 0;//下降沿完成读取操作  
+  92   2              if(DS1302_IO){Data |= (0x01<<i);}
+  93   2          }
+  94   1         
+  95   1              DS1302_CE = 0;//关闭DS1302开关
+  96   1          DS1302_IO = 0;
+  97   1              return Data;//返回真正需要表示的十进制日期、时间数字
+  98   1      }
+  99          
+ 100          
+ 101          
+ 102          
+ 103          
+ 104          
+ 105          
+ 106          //DS1302设置时间,写入单片机
+ 107          void DS1302_SetTime(void)
+ 108          {
+ 109   1          //十进制转换为BCD码
+ 110   1              DS1302_WriteByte(DS1302_WP,0x00);//关闭写入保护
+ 111   1          
+ 112   1          //下面是要存入的信息,先指定要存入的是什么位,然后再写入数据
+ 113   1              DS1302_WriteByte(DS1302_YEAR,  DS1302_Time[0]/10*16 + DS1302_Time[0]%10);
+ 114   1              DS1302_WriteByte(DS1302_MONTH, DS1302_Time[1]/10*16 + DS1302_Time[1]%10);
+ 115   1              DS1302_WriteByte(DS1302_DATE,  DS1302_Time[2]/10*16 + DS1302_Time[2]%10);
+ 116   1              DS1302_WriteByte(DS1302_HOUR,  DS1302_Time[3]/10*16 + DS1302_Time[3]%10);
+C51 COMPILER V9.60.7.0   DS1302                                                            03/25/2026 16:26:02 PAGE 3   
+
+ 117   1              DS1302_WriteByte(DS1302_MINUTE,DS1302_Time[4]/10*16 + DS1302_Time[4]%10);
+ 118   1              DS1302_WriteByte(DS1302_SECOND,DS1302_Time[5]/10*16 + DS1302_Time[5]%10);
+ 119   1              DS1302_WriteByte(DS1302_DAY,   DS1302_Time[6]/10*16 + DS1302_Time[6]%10);
+ 120   1          
+ 121   1              DS1302_WriteByte(DS1302_WP,0x80);//打开写入保护
+ 122   1      }
+ 123          
+ 124          
+ 125          
+ 126          //单片机自身读取已经写入的时间
+ 127          void DS1302_ReadTime(void)
+ 128          {
+ 129   1              unsigned char temp;
+ 130   1              
+ 131   1          //将原本转换成单片机能够读取的BCD码的十进制数,转换成真正需要显示的正确十进制数
+ 132   1              temp = DS1302_ReadByte(DS1302_YEAR);
+ 133   1              DS1302_Time[0] = temp/16*10 + temp%16;
+ 134   1              temp = DS1302_ReadByte(DS1302_MONTH);
+ 135   1              DS1302_Time[1] = temp/16*10 + temp%16;
+ 136   1              temp = DS1302_ReadByte(DS1302_DATE);
+ 137   1              DS1302_Time[2] = temp/16*10 + temp%16;
+ 138   1              temp = DS1302_ReadByte(DS1302_HOUR);
+ 139   1              DS1302_Time[3] = temp/16*10 + temp%16;
+ 140   1              temp = DS1302_ReadByte(DS1302_MINUTE);
+ 141   1              DS1302_Time[4] = temp/16*10 + temp%16;
+ 142   1              temp = DS1302_ReadByte(DS1302_SECOND);
+ 143   1              DS1302_Time[5] = temp/16*10 + temp%16;
+ 144   1              temp = DS1302_ReadByte(DS1302_DAY);
+ 145   1              DS1302_Time[6] = temp/16*10 + temp%16;
+ 146   1      }
+ 147          
+ 148          
+ 149          /*
+ 150          DS1302写入数据小原理
+ 151          上升沿下降沿,把上升沿想象成开门,下降沿想象成关门
+ 152          有人敲门那么寄存器就会开门接客,关门了那么就会准备迎接下一个客人
+ 153          
+ 154          关于DS1302怎么区分Command和Data两种数据:
+ 155          Command:表示我现在指定某一位,准备往这一位写入数据
+ 156          Data:表示我要往这一位写入的数据
+ 157          这两个都是人起的名字,实际上单片机并不认识Command和Data
+ 158          单片机是靠进来的数据的先后顺序来判断哪一个是寻址指令,哪一个是数据
+ 159          单片机强制规定:先进来的一定是寻址指令,后进来的一定是数据
+ 160          
+ 161          Command操作的实际上是《DS1302中文手册》第八页表三的寄存器
+ 162          操作的是年月日时分秒星期这些东西,来通过寻址指定我要往哪个位写入数据
+ 163          */
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    497    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =      8    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)
