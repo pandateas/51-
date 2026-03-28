@@ -1,0 +1,88 @@
+C51 COMPILER V9.60.7.0   MAIN                                                              03/28/2026 14:58:25 PAGE 1   
+
+
+C51 COMPILER V9.60.7.0, COMPILATION OF MODULE MAIN
+OBJECT MODULE PLACED IN .\Objects\main.obj
+COMPILER INVOKED BY: C:\Keil_v5\C51\BIN\C51.EXE main.c OPTIMIZE(8,SPEED) BROWSE DEBUG OBJECTEXTEND PRINT(.\Listings\main
+                    -.lst) OBJECT(.\Objects\main.obj)
+
+line level    source
+
+   1          #include <REGX52.H>
+   2          #include "LCD1602.h"
+   3          #include "Key.h"
+   4          #include "AT24C02.h"
+   5          #include "Delay.h"
+   6          
+   7          unsigned char Data;
+   8          unsigned char KeyNum;
+   9          unsigned int Num;
+  10          
+  11          
+  12          
+  13          
+  14          void main()
+  15          {
+  16   1          LCD_Init();                 //初始化LCD屏幕
+  17   1          LCD_ShowString(1,1,"hello");//测试LCD屏幕是否正确显示
+  18   1          
+  19   1      /*测试AT24C02功能是否正常
+  20   1          AT24C02_WriteByte(1,128);
+  21   1          Delay(5);
+  22   1          Data = AT24C02_ReadByte(1);
+  23   1          LCD_ShowNum(2,1,Data,3);
+  24   1      */    
+  25   1          
+  26   1         
+  27   1          while(1)                //通过按键来选择和存储数据
+  28   1          {
+  29   2              KeyNum = Key();
+  30   2              if(KeyNum == 1) 
+  31   2                 {
+  32   3                     Num ++;
+  33   3                     LCD_ShowNum(1,1,Num,5);
+  34   3                 }
+  35   2              if(KeyNum == 2) 
+  36   2                 {
+  37   3                     Num --;
+  38   3                     LCD_ShowNum(1,1,Num,5);
+  39   3                     Delay(5);
+  40   3                 }
+  41   2               if(KeyNum == 3) 
+  42   2                 {
+  43   3                     AT24C02_WriteByte(0,Num%256);//取低八位
+  44   3                     Delay(5);
+  45   3                     AT24C02_WriteByte(1,Num/256);//取高八位
+  46   3                     Delay(5);
+  47   3                     LCD_ShowString(2,1,"Write OK");
+  48   3                     Delay(1000);
+  49   3                     LCD_ShowString(2,1,"        ");
+  50   3                 }
+  51   2               if(KeyNum == 4) 
+  52   2                 {
+  53   3                     Num = AT24C02_ReadByte(0);
+  54   3                     Num |= AT24C02_ReadByte(1)<<8;//拼接在0寄存器取出来的数后面
+C51 COMPILER V9.60.7.0   MAIN                                                              03/28/2026 14:58:25 PAGE 2   
+
+  55   3                     LCD_ShowNum(1,1,Num,5);
+  56   3                     LCD_ShowString(2,1,"Read OK");
+  57   3                     Delay(1000);
+  58   3                     LCD_ShowString(2,1,"       ");
+  59   3                 }
+  60   2          }
+  61   1          
+  62   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    226    ----
+   CONSTANT SIZE    =     40    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =      4    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

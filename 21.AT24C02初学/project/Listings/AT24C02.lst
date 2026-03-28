@@ -1,0 +1,103 @@
+C51 COMPILER V9.60.7.0   AT24C02                                                           03/28/2026 14:58:26 PAGE 1   
+
+
+C51 COMPILER V9.60.7.0, COMPILATION OF MODULE AT24C02
+OBJECT MODULE PLACED IN .\Objects\AT24C02.obj
+COMPILER INVOKED BY: C:\Keil_v5\C51\BIN\C51.EXE AT24C02.c OPTIMIZE(8,SPEED) BROWSE DEBUG OBJECTEXTEND PRINT(.\Listings\A
+                    -T24C02.lst) OBJECT(.\Objects\AT24C02.obj)
+
+line level    source
+
+   1          /*
+   2          向AT24C02进行什么操作(读/写)
+   3          */
+   4          
+   5          
+   6          
+   7          
+   8          #include <REGX52.H>
+   9          #include "I2C.h"
+  10          #define AT24C02_ADDRESS 0xA0//地址
+  11          
+  12          
+  13          /*
+  14          * @brief AT24C02写入一个字节
+  15          * @param WordAddress要写入字节的地址
+  16          * @param Data要写入的数据
+  17          * @retval 无
+  18          */
+  19           void AT24C02_WriteByte(unsigned char WordAddress,unsigned char Data)
+  20          {
+  21   1         
+  22   1          I2C_Start();                        //向整个I2C上的从机声明我要开始数据传输了
+  23   1          I2C_SendByte(AT24C02_ADDRESS);      //点名要这个地址(AT24C02ROM 0xA0)上的从机
+  24   1          I2C_ReceiveAck();                   //从机喊 "到!"
+  25   1          I2C_SendByte(WordAddress);          //告诉从机我要在他的哪个寄存器(WordAddress)里面写东西
+  26   1          I2C_ReceiveAck();                   //从机喊 "收到!"
+  27   1          I2C_SendByte(Data);                 //主机传输数据Data
+  28   1          I2C_ReceiveAck();                   //传输完成一个字节后,从机返回是否全部收到
+  29   1          I2C_Stop();                         //数据传输完成,SCL和SDA全部置1,初始化成原本的状态
+  30   1          
+  31   1          
+  32   1      }
+  33          
+  34          
+  35          
+  36          /*
+  37          * @brief  AT24C02读取一个字节
+  38          * @param  WordAddress要读出字节的地址
+  39          * @retval 要写入的数据
+  40          */
+  41          unsigned char AT24C02_ReadByte(unsigned char WordAddress)
+  42          {
+  43   1          /*
+  44   1          <<关于为什么要进行两次读写操作而不是多此一举这件事>>
+  45   1          在I2C上,每一次通信的进行都是单向的,所以既然我想要读取
+  46   1          在ROM中的数据,那么我单片机肯定要向外声明,而这一次向外声明
+  47   1          不是读操作而是写操作.单片机不能够在一次通信中进行读写两种操作
+  48   1          所以就必须有两次Start,第一次向外界声明我要操作这个ROM,但是不要
+  49   1          Stop结束,否则相当于两次通信没有链接到一起,随后在进行第二次Start
+  50   1          第二次Start就可以直接进行写操作,因为我在第一次已经声明了我要操作
+  51   1          这个寄存器,中间没有Stop中断操作,那我就还是操作这一个寄存器
+  52   1          
+  53   1          
+  54   1          */
+C51 COMPILER V9.60.7.0   AT24C02                                                           03/28/2026 14:58:26 PAGE 2   
+
+  55   1          
+  56   1          
+  57   1          
+  58   1          
+  59   1          unsigned char Data;
+  60   1          
+  61   1          I2C_Start();                            //开始数据传输
+  62   1          I2C_SendByte(AT24C02_ADDRESS);          //声明从机是谁
+  63   1          I2C_ReceiveAck();                       //从机应答
+  64   1          I2C_SendByte(WordAddress);              //声明我要操作的寄存器是哪一个
+  65   1          I2C_ReceiveAck();                       //从机应答
+  66   1          
+  67   1          
+  68   1          I2C_Start();                            //切换读模式     
+  69   1          I2C_SendByte(AT24C02_ADDRESS|0x01);     //声明我要操作的从机地址,并通过"或"运算声明我是要读操作
+  70   1          I2C_ReceiveAck();                       //从机返回应答
+  71   1          Data = I2C_ReceiveByte();               //接收8位数据并返回给外部,此时我要访问的寄存器地址在第一次Star
+             -t中已经声明是WordAddress了
+  72   1          I2C_SendAck(1);                         //接收完成,从机应答
+  73   1          I2C_Stop();                             //结束通信
+  74   1          
+  75   1          return Data;                            //返回读取出来的数据给外部调用的函数或变量
+  76   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =     82    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----       4
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)
