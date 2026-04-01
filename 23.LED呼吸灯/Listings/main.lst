@@ -1,0 +1,158 @@
+C51 COMPILER V9.60.7.0   MAIN                                                              04/01/2026 23:02:30 PAGE 1   
+
+
+C51 COMPILER V9.60.7.0, COMPILATION OF MODULE MAIN
+OBJECT MODULE PLACED IN .\Objects\main.obj
+COMPILER INVOKED BY: C:\Keil_v5\C51\BIN\C51.EXE main.c OPTIMIZE(8,SPEED) BROWSE DEBUG OBJECTEXTEND PRINT(.\Listings\main
+                    -.lst) OBJECT(.\Objects\main.obj)
+
+line level    source
+
+   1          /*
+   2          直流电机没有正负极,但是输入电流的方向不同会导致电机旋转的方向不同
+   3          */
+   4          
+   5          #include <REGX52.H>
+   6          sbit LED = P2^0;
+   7          
+   8          void Delay(unsigned char i)
+   9          {
+  10   1          while(i --);
+  11   1          
+  12   1          
+  13   1      }
+  14          
+  15          
+  16             
+  17              
+  18          
+  19          void main()
+  20          {  
+  21   1      //    int p;
+  22   1      //    int flag;//p亮,共计100,放到Delay函数中
+  23   1      //    p = 100;
+  24   1      //    flag = 0;//1 表示递减,0表示递增
+  25   1          
+  26   1          
+  27   1          
+  28   1          
+  29   1          unsigned char Time,i;
+  30   1          
+  31   1          
+  32   1          
+  33   1          
+  34   1          
+  35   1          
+  36   1            
+  37   1          while(1)
+  38   1          {
+  39   2              
+  40   2              //缓慢变暗
+  41   2              for(Time = 0;Time < 100;Time ++)
+  42   2              {
+  43   3                  for(i = 0;i < 20;i ++)
+  44   3                  {
+  45   4                      LED = 0;
+  46   4                      Delay(Time);
+  47   4                      LED = 1;
+  48   4                      Delay(100 - Time);
+  49   4                  }
+  50   3              }
+  51   2              
+  52   2              //缓慢变亮
+  53   2              for(Time = 100;Time > 0;Time --)
+  54   2              {
+C51 COMPILER V9.60.7.0   MAIN                                                              04/01/2026 23:02:30 PAGE 2   
+
+  55   3                  for(i = 0;i < 20;i ++)
+  56   3                  {
+  57   4                      LED = 0;
+  58   4                      Delay(Time);
+  59   4                      LED = 1;
+  60   4                      Delay(100 - Time);
+  61   4                  }
+  62   3              }
+  63   2              
+  64   2              
+  65   2              
+  66   2              
+  67   2              
+  68   2              
+  69   2              
+  70   2              
+  71   2              
+  72   2              
+  73   2              
+  74   2              
+  75   2              
+  76   2              
+  77   2              
+  78   2              
+  79   2              
+  80   2              
+  81   2              
+  82   2              
+  83   2              
+  84   2              
+  85   2              
+  86   2              
+  87   2              
+  88   2              
+  89   2              
+  90   2              
+  91   2              
+  92   2              
+  93   2              
+  94   2              
+  95   2              
+  96   2              
+  97   2              
+  98   2              
+  99   2              
+ 100   2              
+ 101   2              
+ 102   2              
+ 103   2      //        if(flag == 0)
+ 104   2      //        {
+ 105   2      //            LED = 0;
+ 106   2      //            Delay(p);
+ 107   2      //            
+ 108   2      //            LED = 1;
+ 109   2      //            Delay(100 - p);
+ 110   2      //            
+ 111   2      //            p -= 1;
+ 112   2      //            if(p == 45) {flag = 1;}
+ 113   2      //         }
+ 114   2      //        
+ 115   2      //        if(flag == 1)
+ 116   2      //        {
+C51 COMPILER V9.60.7.0   MAIN                                                              04/01/2026 23:02:30 PAGE 3   
+
+ 117   2      //            LED = 0;
+ 118   2      //            Delay(p);
+ 119   2      //            
+ 120   2      //            LED = 1;
+ 121   2      //            Delay(100 - p);
+ 122   2      //            
+ 123   2      //            p += 1;
+ 124   2      //            if(p == 105) {flag = 0;}
+ 125   2      //        }
+ 126   2              
+ 127   2          }
+ 128   1          
+ 129   1          
+ 130   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =     56    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)
