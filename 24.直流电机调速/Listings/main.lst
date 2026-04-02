@@ -1,0 +1,93 @@
+C51 COMPILER V9.60.7.0   MAIN                                                              04/02/2026 09:39:19 PAGE 1   
+
+
+C51 COMPILER V9.60.7.0, COMPILATION OF MODULE MAIN
+OBJECT MODULE PLACED IN .\Objects\main.obj
+COMPILER INVOKED BY: C:\Keil_v5\C51\BIN\C51.EXE main.c OPTIMIZE(8,SPEED) BROWSE DEBUG OBJECTEXTEND PRINT(.\Listings\main
+                    -.lst) OBJECT(.\Objects\main.obj)
+
+line level    source
+
+   1          /*
+   2          驱动电机要给高电平,点亮LED要给低电平,两者极性相反
+   3          */
+   4          
+   5          
+   6          #include <REGX52.H>
+   7          #include "Timer0.h"
+   8          #include "Delay.h"
+   9          #include "Key.h"
+  10          #include "nixie.h"
+  11          
+  12          sbit LED = P2^0;
+  13          sbit Motor = P1^0;
+  14          
+  15          //Compare表示100刻度的阈值,Compare以下低电平
+  16          //以上高电平,LED低电平亮,程序不断发出0 -> 100脉冲
+  17          unsigned char Counter,Compare,KeyNum;
+  18          unsigned char Speed;
+  19          void main()
+  20          {
+  21   1          
+  22   1          
+  23   1          
+  24   1          Timer0_Init();
+  25   1          
+  26   1          //设置通电时,电机不会转
+  27   1          Speed = 0;
+  28   1          if(Speed == 0){Compare = 100;}
+  29   1          if(Speed == 1){Compare = 50;}
+  30   1          if(Speed == 2){Compare = 25;}
+  31   1          if(Speed == 3){Compare = 0;}
+  32   1          
+  33   1          while(1)
+  34   1          {
+  35   2              KeyNum = Key();
+  36   2              
+  37   2              if(KeyNum == 1)
+  38   2              {
+  39   3                  Speed ++;
+  40   3                  Speed %= 4;
+  41   3                  
+  42   3                  if(Speed == 0){Compare = 100;}
+  43   3                  if(Speed == 1){Compare = 50;}
+  44   3                  if(Speed == 2){Compare = 25;}
+  45   3                  if(Speed == 3){Compare = 0;}
+  46   3               }
+  47   2              nixie(1,Speed);         //调速后显示速度档位
+  48   2          } 
+  49   1          
+  50   1      }
+  51          
+  52          void Timer0_Routine() interrupt 1
+  53          {
+  54   1          TL0 = 0xA4;          //重置定时器
+C51 COMPILER V9.60.7.0   MAIN                                                              04/02/2026 09:39:19 PAGE 2   
+
+  55   1          TH0 = 0xFF;
+  56   1          Counter++;
+  57   1          Counter%=100;       //脉冲计数器,从0 -> 100
+  58   1          
+  59   1          if(Counter < Compare)
+  60   1          {
+  61   2              Motor = 0;      //低电平不转
+  62   2           }
+  63   1          else
+  64   1          {
+  65   2              Motor = 1;      //高电平转
+  66   2          }
+  67   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    141    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =      4    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)
